@@ -1,11 +1,14 @@
 require("dotenv").config();
 require("./db/initDb");
+require("./db/initDocsTable");
 
 const express = require("express");
 const cors = require("cors");
 
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
+const documentRoutes =
+  require("./routes/documentRoutes");
 const app = express();
 
 app.use(cors());
@@ -17,6 +20,14 @@ app.get("/", (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
+app.use(
+  "/api/docs",
+  documentRoutes
+);
+app.use(
+  "/uploads",
+  express.static("uploads")
+);
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
