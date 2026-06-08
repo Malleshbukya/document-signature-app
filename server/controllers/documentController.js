@@ -37,6 +37,59 @@ const uploadDocument = (
   }
 };
 
+const getDocuments = (req, res) => {
+  try {
+    const documents = db
+      .prepare(`
+        SELECT *
+        FROM documents
+        WHERE owner_id = ?
+      `)
+      .all(req.user.id);
+
+    res.json(documents);
+
+  } catch (error) {
+    res.status(500).json({
+      error: error.message,
+    });
+  }
+};
+
+const getDocumentById = (req, res) => {
+  try {
+
+    const document = db
+      .prepare(`
+        SELECT *
+        FROM documents
+        WHERE id = ?
+        AND owner_id = ?
+      `)
+      .get(
+        req.params.id,
+        req.user.id
+      );
+
+    if (!document) {
+      return res.status(404).json({
+        message: "Document not found",
+      });
+    }
+
+    res.json(document);
+
+  } catch (error) {
+
+    res.status(500).json({
+      error: error.message,
+    });
+
+  }
+};
+
 module.exports = {
   uploadDocument,
+   getDocuments,
+  getDocumentById,
 };

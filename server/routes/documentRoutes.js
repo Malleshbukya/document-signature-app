@@ -1,24 +1,22 @@
-const express =
-  require("express");
+const express = require("express");
 
-const upload =
-  require(
-    "../middleware/uploadMiddleware"
-  );
+const upload = require(
+  "../middleware/uploadMiddleware"
+);
 
-const authMiddleware =
-  require(
-    "../middleware/authMiddleware"
-  );
+const authMiddleware = require(
+  "../middleware/authMiddleware"
+);
 
 const {
   uploadDocument,
+  getDocuments,
+  getDocumentById,
 } = require(
   "../controllers/documentController"
 );
 
-const router =
-  express.Router();
+const router = express.Router();
 
 router.post(
   "/upload",
@@ -27,5 +25,16 @@ router.post(
   uploadDocument
 );
 
-module.exports =
-  router;
+router.get(
+  "/",
+  authMiddleware,
+  getDocuments
+);
+
+router.get(
+  "/:id",
+  authMiddleware,
+  getDocumentById
+);
+
+module.exports = router;
