@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import PDFEditor from "../components/PDFEditor";
 
 function Dashboard() {
   const [documents, setDocuments] =
@@ -63,6 +64,8 @@ return (
         </a>
       </div>
     ))}
+      <PDFEditor />
+
   </div>
 );
 }
