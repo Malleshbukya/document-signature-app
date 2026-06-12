@@ -23,6 +23,9 @@ const pdfRoutes =
   const shareRoutes =
   require("./routes/shareRoutes");
 
+  const emailRoutes =
+  require("./routes/emailRoutes");
+
 const app = express();
 
 app.use(cors());
@@ -68,6 +71,11 @@ app.use(
 app.use(
   "/api/share",
   shareRoutes
+);
+
+app.use(
+  "/api/email",
+  emailRoutes
 );
 const PORT =
   process.env.PORT || 5000;
