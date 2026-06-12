@@ -20,6 +20,8 @@ const signatureRoutes =
 
 const pdfRoutes =
   require("./routes/pdfRoutes");
+  const shareRoutes =
+  require("./routes/shareRoutes");
 
 const app = express();
 
@@ -62,6 +64,11 @@ app.use(
   express.static("uploads")
 );
 
+
+app.use(
+  "/api/share",
+  shareRoutes
+);
 const PORT =
   process.env.PORT || 5000;
 

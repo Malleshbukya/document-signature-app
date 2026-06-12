@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS documents (
   owner_id INTEGER NOT NULL,
   file_name TEXT NOT NULL,
   file_path TEXT NOT NULL,
+  share_token TEXT,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY(owner_id) REFERENCES users(id)
 )
