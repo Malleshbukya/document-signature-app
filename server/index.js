@@ -31,6 +31,9 @@ const pdfRoutes =
   const auditRoutes =
   require("./routes/auditRoutes");
 
+  const statusRoutes =
+  require("./routes/statusRoutes");
+
 const app = express();
 
 app.use(cors());
@@ -87,9 +90,14 @@ app.use(
   "/api/audit",
   auditRoutes
 );
+
+app.use(
+  "/api/status",
+  statusRoutes
+);
 const PORT =
   process.env.PORT || 5000;
-
+git add
 app.listen(PORT, () => {
   console.log(
     `Server running on port ${PORT}`
