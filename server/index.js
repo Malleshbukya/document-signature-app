@@ -2,6 +2,7 @@ require("dotenv").config();
 require("./db/initDb");
 require("./db/initDocsTable");
 require("./db/initSignatureTable");
+  require("./db/initAuditTable");
 
 const express = require("express");
 const cors = require("cors");
@@ -25,6 +26,10 @@ const pdfRoutes =
 
   const emailRoutes =
   require("./routes/emailRoutes");
+
+
+  const auditRoutes =
+  require("./routes/auditRoutes");
 
 const app = express();
 
@@ -76,6 +81,11 @@ app.use(
 app.use(
   "/api/email",
   emailRoutes
+);
+
+app.use(
+  "/api/audit",
+  auditRoutes
 );
 const PORT =
   process.env.PORT || 5000;

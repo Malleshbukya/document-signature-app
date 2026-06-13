@@ -13,13 +13,22 @@ const {
   "../controllers/signatureController"
 );
 
+const logAudit =
+  require(
+    "../middleware/auditMiddleware"
+  );
+
 const router =
   express.Router();
 
 // Save Signature
+
 router.post(
   "/",
   authMiddleware,
+  logAudit(
+    "SIGNED_DOCUMENT"
+  ),
   saveSignature
 );
 

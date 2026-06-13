@@ -32,6 +32,11 @@ const saveSignature =
           page || 1
         );
 
+        req.logAudit(
+  documentId,
+  req.user.id
+);
+
       res.status(201).json({
         message:
           "Signature saved",
