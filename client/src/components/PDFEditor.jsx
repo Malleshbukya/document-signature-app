@@ -20,6 +20,7 @@ pdfjs.GlobalWorkerOptions.workerSrc =
   pdfWorker;
 
 function PDFEditor() {
+
   const [numPages, setNumPages] =
     useState(null);
 
@@ -29,26 +30,11 @@ function PDFEditor() {
       y: 250,
     });
 
-  const handleDragEnd =
-    async (e) => {
+  const pdfUrl =
+    "http://localhost:5000/uploads/1780812699150-Adnoc_CV_Mallesh1.pdf";
 
-      const newX =
-        e.clientX - 100;
-
-      const newY =
-        e.clientY - 100;
-
-      setSignaturePos({
-        x: newX,
-        y: newY,
-      });
-
-      console.log(
-        "X:",
-        newX,
-        "Y:",
-        newY
-      );
+  const saveSignature =
+    async (x, y) => {
 
       try {
 
@@ -61,8 +47,8 @@ function PDFEditor() {
           "http://localhost:5000/api/signatures",
           {
             documentId: 1,
-            x: newX,
-            y: newY,
+            x,
+            y,
             page: 1,
           },
           {
@@ -84,15 +70,85 @@ function PDFEditor() {
       }
     };
 
-  const pdfUrl =
-    "http://localhost:5000/uploads/1780812699150-Adnoc_CV_Mallesh1.pdf";
+  const handleMouseDown =
+    (e) => {
+
+      const startX =
+        e.clientX;
+
+      const startY =
+        e.clientY;
+
+      const initialX =
+        signaturePos.x;
+
+      const initialY =
+        signaturePos.y;
+
+      const handleMouseMove =
+        (e) => {
+
+          setSignaturePos({
+            x:
+              initialX +
+              (e.clientX - startX),
+
+            y:
+              initialY +
+              (e.clientY - startY),
+          });
+
+        };
+
+      const handleMouseUp =
+        async (e) => {
+
+          const finalX =
+            initialX +
+            (e.clientX - startX);
+
+          const finalY =
+            initialY +
+            (e.clientY - startY);
+
+          document.removeEventListener(
+            "mousemove",
+            handleMouseMove
+          );
+
+          document.removeEventListener(
+            "mouseup",
+            handleMouseUp
+          );
+
+          await saveSignature(
+            finalX,
+            finalY
+          );
+
+        };
+
+      document.addEventListener(
+        "mousemove",
+        handleMouseMove
+      );
+
+      document.addEventListener(
+        "mouseup",
+        handleMouseUp
+      );
+
+    };
 
   return (
     <div
       style={{
         position: "relative",
+        width: "700px",
+        margin: "20px auto",
       }}
     >
+
       <Document
         file={pdfUrl}
         onLoadSuccess={(
@@ -103,6 +159,7 @@ function PDFEditor() {
           )
         }
       >
+
         {Array.from(
           new Array(
             numPages || 0
@@ -117,33 +174,47 @@ function PDFEditor() {
             />
           )
         )}
+
       </Document>
 
       <div
-        draggable
-        onDragEnd={
-          handleDragEnd
+        onMouseDown={
+          handleMouseDown
         }
         style={{
           position:
             "absolute",
+
           left:
             signaturePos.x,
+
           top:
             signaturePos.y,
+
           background:
             "yellow",
-          padding: "10px",
+
+          padding:
+            "10px 20px",
+
           border:
             "2px solid black",
-          cursor: "move",
+
+          cursor:
+            "move",
+
           zIndex: 1000,
+
+          fontWeight:
+            "bold",
+
           userSelect:
             "none",
         }}
       >
         Sign Here
       </div>
+
     </div>
   );
 }
