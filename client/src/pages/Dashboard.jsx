@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+
+import UploadDocument from "../components/UploadDocument";
+import UploadSignature from "../components/UploadSignature";
 import PDFEditor from "../components/PDFEditor";
 
 function Dashboard() {
@@ -9,9 +12,22 @@ function Dashboard() {
   const [filter, setFilter] =
     useState("All");
 
+  const [selectedDocument,
+    setSelectedDocument] =
+    useState(null);
+
   useEffect(() => {
     fetchDocuments();
   }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem(
+      "token"
+    );
+
+    window.location.href =
+      "/login";
+  };
 
   const fetchDocuments =
     async () => {
@@ -35,9 +51,49 @@ function Dashboard() {
         setDocuments(
           response.data
         );
-
       } catch (error) {
         console.log(error);
+      }
+    };
+
+  const handleDelete =
+    async (id) => {
+      const confirmDelete =
+        window.confirm(
+          "Are you sure you want to delete this document?"
+        );
+
+      if (!confirmDelete) {
+        return;
+      }
+
+      try {
+        const token =
+          localStorage.getItem(
+            "token"
+          );
+
+        await axios.delete(
+          `http://localhost:5000/api/docs/${id}`,
+          {
+            headers: {
+              Authorization:
+                `Bearer ${token}`,
+            },
+          }
+        );
+
+        alert(
+          "Document deleted successfully"
+        );
+
+        fetchDocuments();
+      } catch (error) {
+        console.log(error);
+
+        alert(
+          "Delete failed"
+        );
       }
     };
 
@@ -50,152 +106,264 @@ function Dashboard() {
         );
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
+    <div className="min-h-screen bg-gray-100">
 
-      <h1 className="text-4xl font-bold mb-4">
-        My Documents
-      </h1>
+      <div className="max-w-6xl mx-auto p-6">
 
-      <p className="mb-6 text-gray-600">
-        Total Documents:
-        <span className="font-bold ml-2">
-          {filteredDocs.length}
-        </span>
-      </p>
+        {/* Header */}
 
-      <div className="flex flex-wrap gap-3 mb-6">
+        <div className="flex justify-between items-center mb-8">
 
-        <button
-          onClick={() =>
-            setFilter("All")
-          }
-          className="
-            px-4 py-2
-            bg-gray-500
-            text-white
-            rounded
-          "
-        >
-          All
-        </button>
+          <div>
 
-        <button
-          onClick={() =>
-            setFilter("Pending")
-          }
-          className="
-            px-4 py-2
-            bg-yellow-500
-            text-white
-            rounded
-          "
-        >
-          Pending
-        </button>
+            <h1 className="text-4xl font-bold text-gray-800">
+              My Documents
+            </h1>
 
-        <button
-          onClick={() =>
-            setFilter("Signed")
-          }
-          className="
-            px-4 py-2
-            bg-green-600
-            text-white
-            rounded
-          "
-        >
-          Signed
-        </button>
+            <p className="text-gray-500 mt-2">
+              Manage all your PDFs
+            </p>
 
-        <button
-          onClick={() =>
-            setFilter("Rejected")
-          }
-          className="
-            px-4 py-2
-            bg-red-600
-            text-white
-            rounded
-          "
-        >
-          Rejected
-        </button>
-
-      </div>
-
-      <div className="grid md:grid-cols-2 gap-4">
-
-        {filteredDocs.length === 0 && (
-          <div className="p-4 text-gray-500">
-            No documents found
           </div>
-        )}
 
-        {filteredDocs.map(
-          (doc) => (
-            <div
-              key={doc.id}
-              className="
-                border
-                rounded-xl
-                shadow-lg
-                p-5
-                bg-white
-              "
-            >
-              <h3 className="text-xl font-semibold mb-3">
-                {doc.file_name}
-              </h3>
+          <button
+            onClick={handleLogout}
+            className="
+              bg-red-500
+              hover:bg-red-600
+              text-white
+              px-5
+              py-2
+              rounded-lg
+              shadow
+            "
+          >
+            Logout
+          </button>
 
-              <p className="mb-4">
+        </div>
 
-                Status:
+        {/* Upload PDF */}
 
-                <span
-                  className={`
-                    ml-2
-                    px-3
-                    py-1
-                    rounded-full
-                    text-white
-                    text-sm
-                    ${
-                      doc.status ===
-                      "Signed"
-                        ? "bg-green-500"
-                        : doc.status ===
-                          "Rejected"
-                        ? "bg-red-500"
-                        : "bg-yellow-500"
-                    }
-                  `}
-                >
-                  {doc.status ||
-                    "Pending"}
-                </span>
+        <div className="mb-8">
+          <UploadDocument />
+        </div>
 
-              </p>
+        {/* Upload Signature */}
 
-              <a
-                href={`http://localhost:5000/${doc.file_path}`}
-                target="_blank"
-                rel="noreferrer"
+        <div className="mb-8">
+          <UploadSignature />
+        </div>
+
+        {/* Total Documents */}
+
+        <div className="mb-6">
+
+          <span className="text-lg text-gray-600">
+            Total Documents:
+          </span>
+
+          <span className="ml-2 font-bold text-xl">
+            {filteredDocs.length}
+          </span>
+
+        </div>
+
+        {/* Filters */}
+
+        <div className="flex flex-wrap gap-3 mb-8">
+
+          <button
+            onClick={() =>
+              setFilter("All")
+            }
+            className="
+              px-5 py-2
+              bg-gray-600
+              text-white
+              rounded-lg
+            "
+          >
+            All
+          </button>
+
+          <button
+            onClick={() =>
+              setFilter("Pending")
+            }
+            className="
+              px-5 py-2
+              bg-yellow-500
+              text-white
+              rounded-lg
+            "
+          >
+            Pending
+          </button>
+
+          <button
+            onClick={() =>
+              setFilter("Signed")
+            }
+            className="
+              px-5 py-2
+              bg-green-600
+              text-white
+              rounded-lg
+            "
+          >
+            Signed
+          </button>
+
+          <button
+            onClick={() =>
+              setFilter("Rejected")
+            }
+            className="
+              px-5 py-2
+              bg-red-600
+              text-white
+              rounded-lg
+            "
+          >
+            Rejected
+          </button>
+
+        </div>
+
+        {/* Document Cards */}
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+          {filteredDocs.length === 0 && (
+            <div className="text-gray-500">
+              No documents found
+            </div>
+          )}
+
+          {filteredDocs.map(
+            (doc) => (
+
+              <div
+                key={doc.id}
                 className="
-                  text-blue-600
-                  hover:underline
+                  bg-white
+                  rounded-xl
+                  shadow-lg
+                  p-5
+                  border
                 "
               >
-                Open PDF
-              </a>
 
-            </div>
-          )
+                <h3 className="text-xl font-bold mb-4">
+                  {doc.file_name}
+                </h3>
+
+                <p className="mb-4">
+
+                  Status:
+
+                  <span
+                    className="
+                      ml-2
+                      px-3
+                      py-1
+                      rounded-full
+                      text-white
+                      bg-yellow-500
+                    "
+                  >
+                    {doc.status ||
+                      "Pending"}
+                  </span>
+
+                </p>
+
+                <div className="flex flex-col gap-3">
+
+                  <a
+                    href={`http://localhost:5000/${doc.file_path}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="
+                      text-blue-600
+                      hover:underline
+                    "
+                  >
+                    📄 Open PDF
+                  </a>
+
+                  <button
+                    onClick={() =>
+                      setSelectedDocument(doc)
+                    }
+                    className="
+                      bg-blue-500
+                      hover:bg-blue-600
+                      text-white
+                      px-4
+                      py-2
+                      rounded-lg
+                    "
+                  >
+                    ✍ Sign PDF
+                  </button>
+
+                  {/* FIXED DOWNLOAD LINK */}
+
+                  <a
+                    href={`http://localhost:5000/uploads/signed-${doc.id}.pdf`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="
+                      text-green-600
+                      hover:underline
+                    "
+                  >
+                    ⬇ Download Signed PDF
+                  </a>
+
+                  <button
+                    onClick={() =>
+                      handleDelete(doc.id)
+                    }
+                    className="
+                      bg-red-500
+                      hover:bg-red-600
+                      text-white
+                      px-4
+                      py-2
+                      rounded-lg
+                    "
+                  >
+                    🗑 Delete Document
+                  </button>
+
+                </div>
+
+              </div>
+
+            )
+          )}
+
+        </div>
+
+        {/* PDF Editor */}
+
+        {selectedDocument && (
+
+          <div className="mt-10">
+
+            <PDFEditor
+              document={
+                selectedDocument
+              }
+            />
+
+          </div>
+
         )}
 
-      </div>
-
-      <div className="mt-8">
-        <PDFEditor />
       </div>
 
     </div>

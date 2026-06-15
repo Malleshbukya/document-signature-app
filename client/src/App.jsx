@@ -6,14 +6,35 @@ import {
 
 import Dashboard from "./pages/Dashboard";
 import PublicSignPage from "./components/PublicSignPage";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
+
+        <Route
+          path="/login"
+          element={<Login />}
+        />
+
+        <Route
+          path="/register"
+          element={
+            <Register />
+          }
+        />
+
         <Route
           path="/"
-          element={<Dashboard />}
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
         />
 
         <Route
@@ -22,6 +43,7 @@ function App() {
             <PublicSignPage />
           }
         />
+
       </Routes>
     </BrowserRouter>
   );

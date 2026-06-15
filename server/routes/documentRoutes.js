@@ -12,11 +12,13 @@ const {
   uploadDocument,
   getDocuments,
   getDocumentById,
+  deleteDocument,
 } = require(
   "../controllers/documentController"
 );
 
-const router = express.Router();
+const router =
+  express.Router();
 
 router.post(
   "/upload",
@@ -31,10 +33,17 @@ router.get(
   getDocuments
 );
 
+router.delete(
+  "/:id",
+  authMiddleware,
+  deleteDocument
+);
+
 router.get(
   "/:id",
   authMiddleware,
   getDocumentById
 );
 
-module.exports = router;
+module.exports =
+  router;

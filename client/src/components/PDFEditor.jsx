@@ -1,4 +1,8 @@
-import { useState } from "react";
+import {
+  useState,
+  useEffect,
+} from "react";
+
 import axios from "axios";
 
 import {
@@ -19,19 +23,87 @@ import
 pdfjs.GlobalWorkerOptions.workerSrc =
   pdfWorker;
 
-function PDFEditor() {
+function PDFEditor({
+  document: pdfDocument,
+}) {
 
   const [numPages, setNumPages] =
     useState(null);
 
-  const [signaturePos, setSignaturePos] =
+  const [signaturePos,
+    setSignaturePos] =
     useState({
       x: 120,
       y: 250,
     });
 
+  if (!pdfDocument) {
+    return null;
+  }
+
   const pdfUrl =
-    "http://localhost:5000/uploads/1780812699150-Adnoc_CV_Mallesh1.pdf";
+    `http://localhost:5000/${pdfDocument.file_path}`;
+
+  const signatureImage =
+    "http://localhost:5000/uploads/signatures/1781515515518.jpeg";
+
+  useEffect(() => {
+
+    loadSignaturePosition();
+
+  }, [pdfDocument]);
+
+  const loadSignaturePosition =
+    async () => {
+
+      try {
+
+        const token =
+          localStorage.getItem(
+            "token"
+          );
+
+        const response =
+          await axios.get(
+            `http://localhost:5000/api/signatures/${pdfDocument.id}`,
+            {
+              headers: {
+                Authorization:
+                  `Bearer ${token}`,
+              },
+            }
+          );
+
+        if (
+          response.data &&
+          response.data.length > 0
+        ) {
+
+          const latest =
+            response.data[
+              response.data.length - 1
+            ];
+
+          setSignaturePos({
+            x:
+              Number(
+                latest.x
+              ),
+            y:
+              Number(
+                latest.y
+              ),
+          });
+
+        }
+
+      } catch (error) {
+
+        console.log(error);
+
+      }
+
+    };
 
   const saveSignature =
     async (x, y) => {
@@ -46,7 +118,8 @@ function PDFEditor() {
         await axios.post(
           "http://localhost:5000/api/signatures",
           {
-            documentId: 1,
+            documentId:
+              pdfDocument.id,
             x,
             y,
             page: 1,
@@ -59,15 +132,12 @@ function PDFEditor() {
           }
         );
 
-        console.log(
-          "Signature saved"
-        );
-
       } catch (error) {
 
         console.log(error);
 
       }
+
     };
 
   const handleMouseDown =
@@ -91,11 +161,17 @@ function PDFEditor() {
           setSignaturePos({
             x:
               initialX +
-              (e.clientX - startX),
+              (
+                e.clientX -
+                startX
+              ),
 
             y:
               initialY +
-              (e.clientY - startY),
+              (
+                e.clientY -
+                startY
+              ),
           });
 
         };
@@ -105,18 +181,24 @@ function PDFEditor() {
 
           const finalX =
             initialX +
-            (e.clientX - startX);
+            (
+              e.clientX -
+              startX
+            );
 
           const finalY =
             initialY +
-            (e.clientY - startY);
+            (
+              e.clientY -
+              startY
+            );
 
-          document.removeEventListener(
+          window.document.removeEventListener(
             "mousemove",
             handleMouseMove
           );
 
-          document.removeEventListener(
+          window.document.removeEventListener(
             "mouseup",
             handleMouseUp
           );
@@ -128,24 +210,56 @@ function PDFEditor() {
 
         };
 
-      document.addEventListener(
+      window.document.addEventListener(
         "mousemove",
         handleMouseMove
       );
 
-      document.addEventListener(
+      window.document.addEventListener(
         "mouseup",
         handleMouseUp
       );
 
     };
 
+  const generateSignedPdf =
+    async () => {
+
+      try {
+
+        const response =
+          await axios.post(
+            "http://localhost:5000/api/pdf/generate",
+            {
+              documentId:
+                pdfDocument.id,
+            }
+          );
+
+        window.open(
+          `http://localhost:5000${response.data.file}`,
+          "_blank"
+        );
+
+      } catch (error) {
+
+        console.log(error);
+
+      }
+
+    };
+
   return (
+
     <div
+      id="pdf-container"
       style={{
-        position: "relative",
-        width: "700px",
-        margin: "20px auto",
+        position:
+          "relative",
+        width:
+          "700px",
+        margin:
+          "20px auto",
       }}
     >
 
@@ -177,46 +291,66 @@ function PDFEditor() {
 
       </Document>
 
-      <div
+      <img
+        src={signatureImage}
+        alt="Signature"
         onMouseDown={
           handleMouseDown
         }
         style={{
           position:
             "absolute",
-
           left:
             signaturePos.x,
-
           top:
             signaturePos.y,
-
-          background:
-            "yellow",
-
-          padding:
-            "10px 20px",
-
-          border:
-            "2px solid black",
-
+          width:
+            "150px",
+          height:
+            "80px",
           cursor:
             "move",
-
-          zIndex: 1000,
-
-          fontWeight:
-            "bold",
-
+          zIndex:
+            9999,
           userSelect:
             "none",
+          border:
+            "2px dashed red",
+          background:
+            "white",
+        }}
+      />
+
+      <button
+        onClick={
+          generateSignedPdf
+        }
+        style={{
+          marginTop:
+            "20px",
+          padding:
+            "10px 20px",
+          background:
+            "green",
+          color:
+            "white",
+          border:
+            "none",
+          borderRadius:
+            "8px",
+          cursor:
+            "pointer",
+          fontWeight:
+            "bold",
         }}
       >
-        Sign Here
-      </div>
+        Generate Signed PDF
+      </button>
 
     </div>
+
   );
+
 }
 
 export default PDFEditor;

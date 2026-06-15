@@ -12,6 +12,15 @@ const {
 
 router.post(
   "/generate",
+  (req, res, next) => {
+
+    console.log(
+      "PDF ROUTE HIT"
+    );
+
+    next();
+
+  },
   generateSignedPdf
 );
 

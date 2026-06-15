@@ -34,6 +34,11 @@ const pdfRoutes =
   const statusRoutes =
   require("./routes/statusRoutes");
 
+  const signatureImageRoutes =
+  require(
+    "./routes/signatureImageRoutes"
+  );
+
 const app = express();
 
 app.use(cors());
@@ -94,6 +99,12 @@ app.use(
 app.use(
   "/api/status",
   statusRoutes
+);
+
+
+app.use(
+  "/api/signature-image",
+  signatureImageRoutes
 );
 const PORT =
   process.env.PORT || 5000;

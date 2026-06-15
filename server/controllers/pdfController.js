@@ -1,25 +1,139 @@
 const fs = require("fs");
 const path = require("path");
+const db = require("../db/database");
 const { PDFDocument } = require("pdf-lib");
 
 const generateSignedPdf = async (
   req,
   res
 ) => {
+
   try {
+
+    const {
+      documentId,
+    } = req.body;
+
+    const documentData = db
+      .prepare(`
+        SELECT *
+        FROM documents
+        WHERE id = ?
+      `)
+      .get(documentId);
+
+    if (!documentData) {
+
+      return res
+        .status(404)
+        .json({
+          message:
+            "Document not found",
+        });
+
+    }
+
     const inputPath =
       path.join(
         __dirname,
-        "../uploads/1780812699150-Adnoc_CV_Mallesh1.pdf"
+        "..",
+        documentData.file_path
+      );
+
+    const signatureData = db
+      .prepare(`
+        SELECT *
+        FROM signatures
+        WHERE document_id = ?
+        ORDER BY id DESC
+        LIMIT 1
+      `)
+      .get(documentId);
+
+    if (!signatureData) {
+
+      return res
+        .status(404)
+        .json({
+          message:
+            "No signature coordinates found",
+        });
+
+    }
+
+    // Get latest uploaded signature image
+
+    const signaturesDir =
+      path.join(
+        __dirname,
+        "../uploads/signatures"
+      );
+
+    const signatureFiles =
+      fs.readdirSync(
+        signaturesDir
+      );
+
+    if (
+      signatureFiles.length === 0
+    ) {
+
+      return res
+        .status(404)
+        .json({
+          message:
+            "No signature image found",
+        });
+
+    }
+
+    const latestSignature =
+      signatureFiles
+        .sort()
+        .pop();
+
+    const signaturePath =
+      path.join(
+        signaturesDir,
+        latestSignature
       );
 
     const existingPdf =
-      fs.readFileSync(inputPath);
+      fs.readFileSync(
+        inputPath
+      );
 
     const pdfDoc =
       await PDFDocument.load(
         existingPdf
       );
+
+    const signatureBytes =
+      fs.readFileSync(
+        signaturePath
+      );
+
+    let signatureImage;
+
+    if (
+      latestSignature
+        .toLowerCase()
+        .endsWith(".png")
+    ) {
+
+      signatureImage =
+        await pdfDoc.embedPng(
+          signatureBytes
+        );
+
+    } else {
+
+      signatureImage =
+        await pdfDoc.embedJpg(
+          signatureBytes
+        );
+
+    }
 
     const pages =
       pdfDoc.getPages();
@@ -27,22 +141,62 @@ const generateSignedPdf = async (
     const firstPage =
       pages[0];
 
-    firstPage.drawText(
-      "Mallesh Signature",
+    const pageWidth =
+      firstPage.getWidth();
+
+    const pageHeight =
+      firstPage.getHeight();
+
+    const reactPdfWidth =
+      700;
+
+    const scale =
+      pageWidth /
+      reactPdfWidth;
+
+    const imageWidth =
+      120;
+
+    const imageHeight =
+      60;
+
+    const pdfX =
+      Number(
+        signatureData.x
+      ) * scale;
+
+    const pdfY =
+      pageHeight -
+      (
+        Number(
+          signatureData.y
+        ) * scale
+      ) -
+      imageHeight;
+
+    firstPage.drawImage(
+      signatureImage,
       {
-        x: 120,
-        y: 250,
-        size: 18,
+        x: pdfX,
+        y: pdfY,
+        width:
+          imageWidth,
+        height:
+          imageHeight,
       }
     );
 
     const pdfBytes =
       await pdfDoc.save();
 
+    const outputFileName =
+      `signed-${documentId}.pdf`;
+
     const outputPath =
       path.join(
         __dirname,
-        "../uploads/signed.pdf"
+        "../uploads",
+        outputFileName
       );
 
     fs.writeFileSync(
@@ -52,12 +206,14 @@ const generateSignedPdf = async (
 
     res.json({
       message:
-        "Signed PDF generated",
+        "Signed PDF generated successfully",
       file:
-        "/uploads/signed.pdf",
+        `/uploads/${outputFileName}`,
     });
 
   } catch (error) {
+
+    console.log(error);
 
     res.status(500).json({
       error:
@@ -65,6 +221,7 @@ const generateSignedPdf = async (
     });
 
   }
+
 };
 
 module.exports = {
