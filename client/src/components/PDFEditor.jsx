@@ -43,6 +43,8 @@ function PDFEditor({
 
   const pdfUrl =
     `https://document-signature-app-lgxn.onrender.com/${pdfDocument.file_path}`;
+    
+console.log("PDF PATH:", pdfDocument.file_path);
 
   const [signatureImage,
   setSignatureImage] =
