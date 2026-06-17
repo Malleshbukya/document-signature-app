@@ -1,33 +1,29 @@
 const db = require("../db/database");
 
-const uploadDocument = (
-  req,
-  res
-) => {
-
+const uploadDocument = (req, res) => {
   try {
+    console.log("USER ID:", req.user?.id);
+    console.log("FILE:", req.file);
 
-    const file =
-      req.file;
+    const file = req.file;
 
-    const result =
-      db.prepare(`
-        INSERT INTO documents
-        (
-          owner_id,
-          file_name,
-          file_path,
-          status
-        )
-        VALUES (?,?,?,?)
-      `).run(
-        req.user.id,
-        file.originalname,
-        file.path,
-        "Pending"
-      );
+    const result = db.prepare(`
+      INSERT INTO documents
+      (
+        owner_id,
+        file_name,
+        file_path,
+        status
+      )
+      VALUES (?,?,?,?)
+    `).run(
+      req.user.id,
+      file.originalname,
+      file.path,
+      "Pending"
+    );
 
-    // Audit Log
+    console.log("DOCUMENT INSERTED:", result);
 
     db.prepare(`
       INSERT INTO audit_logs
@@ -45,21 +41,20 @@ const uploadDocument = (
       "Document Uploaded"
     );
 
+    console.log("AUDIT INSERTED");
+
     res.status(201).json({
-      message:
-        "Document uploaded successfully",
+      message: "Document uploaded successfully",
       file,
     });
 
   } catch (error) {
+    console.log("UPLOAD ERROR:", error);
 
     res.status(500).json({
-      error:
-        error.message,
+      error: error.message,
     });
-
   }
-
 };
 const getDocuments = (
   req,
