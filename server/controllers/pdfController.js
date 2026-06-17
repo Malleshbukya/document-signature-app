@@ -8,11 +8,25 @@ const generateSignedPdf = async (
   res
 ) => {
 
+  console.log(
+    "GENERATE PDF STARTED"
+  );
+
+  console.log(
+    "BODY:",
+    req.body
+  );
+
   try {
 
     const {
       documentId,
     } = req.body;
+
+    console.log(
+      "DOCUMENT ID:",
+      documentId
+    );
 
     const documentData = db
       .prepare(`
@@ -21,6 +35,11 @@ const generateSignedPdf = async (
         WHERE id = ?
       `)
       .get(documentId);
+
+    console.log(
+      "DOCUMENT DATA:",
+      documentData
+    );
 
     if (!documentData) {
 
@@ -34,11 +53,29 @@ const generateSignedPdf = async (
     }
 
     const inputPath =
-      path.join(
-        __dirname,
-        "..",
-        documentData.file_path
-      );
+      documentData.file_path;
+
+    console.log(
+      "INPUT PATH:",
+      inputPath
+    );
+
+    if (
+      !fs.existsSync(
+        inputPath
+      )
+    ) {
+
+      return res
+        .status(404)
+        .json({
+          message:
+            "PDF file not found on server",
+          path:
+            inputPath,
+        });
+
+    }
 
     const signatureData = db
       .prepare(`
@@ -49,6 +86,11 @@ const generateSignedPdf = async (
         LIMIT 1
       `)
       .get(documentId);
+
+    console.log(
+      "SIGNATURE DATA:",
+      signatureData
+    );
 
     if (!signatureData) {
 
@@ -61,24 +103,41 @@ const generateSignedPdf = async (
 
     }
 
-    // Get latest uploaded signature image
-
     const signaturesDir =
       path.join(
         __dirname,
         "../uploads/signatures"
       );
 
-    if (!fs.existsSync(signaturesDir)) {
-  return res.status(404).json({
-    message: "Signature folder not found",
-  });
-}
+    console.log(
+      "SIGNATURE DIR:",
+      signaturesDir
+    );
 
-const signatureFiles =
-  fs.readdirSync(
-    signaturesDir
-  );
+    if (
+      !fs.existsSync(
+        signaturesDir
+      )
+    ) {
+
+      return res
+        .status(404)
+        .json({
+          message:
+            "Signature folder not found",
+        });
+
+    }
+
+    const signatureFiles =
+      fs.readdirSync(
+        signaturesDir
+      );
+
+    console.log(
+      "SIGNATURE FILES:",
+      signatureFiles
+    );
 
     if (
       signatureFiles.length === 0
@@ -104,17 +163,15 @@ const signatureFiles =
         latestSignature
       );
 
-   if (!fs.existsSync(inputPath)) {
-  return res.status(404).json({
-    message: "PDF file not found on server",
-    path: inputPath,
-  });
-}
+    console.log(
+      "LATEST SIGNATURE:",
+      signaturePath
+    );
 
-const existingPdf =
-  fs.readFileSync(
-    inputPath
-  );
+    const existingPdf =
+      fs.readFileSync(
+        inputPath
+      );
 
     const pdfDoc =
       await PDFDocument.load(
@@ -173,55 +230,29 @@ const existingPdf =
     const imageHeight =
       120;
 
-   
-const pdfX =
-  Number(
-    signatureData.x
-  ) * scale;
+    const pdfX =
+      Number(
+        signatureData.x
+      ) * scale;
 
-const pdfY =
-  pageHeight -
-  (
-    Number(
-      signatureData.y
-    ) * scale
-  ) -
-  imageHeight;
+    const pdfY =
+      pageHeight -
+      (
+        Number(
+          signatureData.y
+        ) * scale
+      ) -
+      imageHeight;
 
-console.log(
-  "React X:",
-  signatureData.x
-);
+    console.log(
+      "PDF X:",
+      pdfX
+    );
 
-console.log(
-  "React Y:",
-  signatureData.y
-);
-
-console.log(
-  "PDF X:",
-  pdfX
-);
-
-console.log(
-  "PDF Y:",
-  pdfY
-);
-
-console.log(
-  "Scale:",
-  scale
-);
-
-console.log(
-  "Page Width:",
-  pageWidth
-);
-
-console.log(
-  "Page Height:",
-  pageHeight
-);
+    console.log(
+      "PDF Y:",
+      pdfY
+    );
 
     firstPage.drawImage(
       signatureImage,
@@ -248,32 +279,45 @@ console.log(
         outputFileName
       );
 
+    console.log(
+      "OUTPUT PATH:",
+      outputPath
+    );
+
     fs.writeFileSync(
-  outputPath,
-  pdfBytes
-);
+      outputPath,
+      pdfBytes
+    );
 
-// Update document status to Signed
+    db.prepare(`
+      UPDATE documents
+      SET status = ?
+      WHERE id = ?
+    `).run(
+      "Signed",
+      documentId
+    );
 
-db.prepare(`
-  UPDATE documents
-  SET status = ?
-  WHERE id = ?
-`).run(
-  "Signed",
-  documentId
-);
+    console.log(
+      "SIGNED PDF CREATED"
+    );
 
-res.json({
-  message:
-    "Signed PDF generated successfully",
-  file:
-    `/uploads/${outputFileName}`,
-});
+    res.json({
+      message:
+        "Signed PDF generated successfully",
+      file:
+        `/uploads/${outputFileName}`,
+    });
 
   } catch (error) {
 
-    console.log(error);
+    console.log(
+      "PDF ERROR:"
+    );
+
+    console.log(
+      error
+    );
 
     res.status(500).json({
       error:
