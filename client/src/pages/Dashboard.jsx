@@ -29,32 +29,40 @@ function Dashboard() {
       "/login";
   };
 
-  const fetchDocuments =
-    async () => {
-      try {
-        const token =
-          localStorage.getItem(
-            "token"
-          );
-
-        const response =
-          await axios.get(
-            "http://localhost:5000/api/docs",
-            {
-              headers: {
-                Authorization:
-                  `Bearer ${token}`,
-              },
-            }
-          );
-
-        setDocuments(
-          response.data
+ const fetchDocuments =
+  async () => {
+    try {
+      const token =
+        localStorage.getItem(
+          "token"
         );
-      } catch (error) {
-        console.log(error);
-      }
-    };
+
+      const response =
+        await axios.get(
+          "http://localhost:5000/api/docs",
+          {
+            headers: {
+              Authorization:
+                `Bearer ${token}`,
+            },
+          }
+        );
+
+      console.log(
+        "Documents:",
+        response.data
+      );
+
+      setDocuments(
+        response.data
+      );
+
+    } catch (error) {
+
+      console.log(error);
+
+    }
+  };
 
   const handleDelete =
     async (id) => {
@@ -97,13 +105,64 @@ function Dashboard() {
       }
     };
 
+    const handleReject = async (id) => {
+
+  const reason = prompt(
+    "Enter rejection reason:"
+  );
+
+  if (!reason) return;
+
+  try {
+
+   const token =
+  localStorage.getItem(
+    "token"
+  );
+
+await axios.post(
+  "http://localhost:5000/api/status/respond",
+  {
+    documentId: id,
+    status: "Rejected",
+    reason,
+  },
+  {
+    headers: {
+      Authorization:
+        `Bearer ${token}`,
+    },
+  }
+);
+
+    alert(
+      "Document Rejected"
+    );
+
+    fetchDocuments();
+
+  } catch (error) {
+
+    console.log(error);
+
+    alert(
+      "Failed to reject document"
+    );
+
+  }
+
+};
   const filteredDocs =
-    filter === "All"
-      ? documents
-      : documents.filter(
-          (doc) =>
-            doc.status === filter
-        );
+  filter === "All"
+    ? documents
+    : documents.filter(
+        (doc) =>
+          (
+            doc.status ||
+            "Pending"
+          ).toLowerCase() ===
+          filter.toLowerCase()
+      );
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -254,25 +313,37 @@ function Dashboard() {
                   border
                 "
               >
-
-                <h3 className="text-xl font-bold mb-4">
-                  {doc.file_name}
-                </h3>
+<h3
+  className="
+    text-xl
+    font-bold
+    mb-4
+    break-all
+  "
+>
+  {doc.file_name}
+</h3>
 
                 <p className="mb-4">
 
                   Status:
 
-                  <span
-                    className="
-                      ml-2
-                      px-3
-                      py-1
-                      rounded-full
-                      text-white
-                      bg-yellow-500
-                    "
-                  >
+                 <span
+  className={`
+    ml-2
+    px-3
+    py-1
+    rounded-full
+    text-white
+    ${
+      doc.status === "Signed"
+        ? "bg-green-500"
+        : doc.status === "Rejected"
+        ? "bg-red-500"
+        : "bg-yellow-500"
+    }
+  `}
+>
                     {doc.status ||
                       "Pending"}
                   </span>
@@ -292,36 +363,56 @@ function Dashboard() {
                   >
                     📄 Open PDF
                   </a>
-
-                  <button
-                    onClick={() =>
-                      setSelectedDocument(doc)
-                    }
-                    className="
-                      bg-blue-500
-                      hover:bg-blue-600
-                      text-white
-                      px-4
-                      py-2
-                      rounded-lg
-                    "
-                  >
-                    ✍ Sign PDF
-                  </button>
+{(doc.status || "Pending") === "Pending" && (
+  <button
+    onClick={() =>
+      setSelectedDocument(doc)
+    }
+    className="
+      bg-blue-500
+      hover:bg-blue-600
+      text-white
+      px-4
+      py-2
+      rounded-lg
+    "
+  >
+    ✍ Sign PDF
+  </button>
+)}
+{(doc.status || "Pending") === "Pending" && (
+  <button
+    onClick={() =>
+      handleReject(doc.id)
+    }
+    className="
+      bg-red-600
+      hover:bg-red-700
+      text-white
+      px-4
+      py-2
+      rounded-lg
+    "
+  >
+    ❌ Reject Document
+  </button>
+)}
 
                   {/* FIXED DOWNLOAD LINK */}
 
-                  <a
-                    href={`http://localhost:5000/uploads/signed-${doc.id}.pdf`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="
-                      text-green-600
-                      hover:underline
-                    "
-                  >
-                    ⬇ Download Signed PDF
-                  </a>
+                 {doc.status === "Signed" && (
+  <a
+    href={`http://localhost:5000/uploads/signed-${doc.id}.pdf`}
+    target="_blank"
+    rel="noreferrer"
+    className="
+      text-green-600
+      hover:underline
+    "
+  >
+    ⬇ Download Signed PDF
+  </a>
+)}
 
                   <button
                     onClick={() =>

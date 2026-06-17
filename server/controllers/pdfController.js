@@ -155,24 +155,60 @@ const generateSignedPdf = async (
       reactPdfWidth;
 
     const imageWidth =
-      120;
+      150;
 
     const imageHeight =
-      60;
+      120;
 
-    const pdfX =
-      Number(
-        signatureData.x
-      ) * scale;
+   
+const pdfX =
+  Number(
+    signatureData.x
+  ) * scale;
 
-    const pdfY =
-      pageHeight -
-      (
-        Number(
-          signatureData.y
-        ) * scale
-      ) -
-      imageHeight;
+const pdfY =
+  pageHeight -
+  (
+    Number(
+      signatureData.y
+    ) * scale
+  ) -
+  imageHeight;
+
+console.log(
+  "React X:",
+  signatureData.x
+);
+
+console.log(
+  "React Y:",
+  signatureData.y
+);
+
+console.log(
+  "PDF X:",
+  pdfX
+);
+
+console.log(
+  "PDF Y:",
+  pdfY
+);
+
+console.log(
+  "Scale:",
+  scale
+);
+
+console.log(
+  "Page Width:",
+  pageWidth
+);
+
+console.log(
+  "Page Height:",
+  pageHeight
+);
 
     firstPage.drawImage(
       signatureImage,
@@ -200,16 +236,27 @@ const generateSignedPdf = async (
       );
 
     fs.writeFileSync(
-      outputPath,
-      pdfBytes
-    );
+  outputPath,
+  pdfBytes
+);
 
-    res.json({
-      message:
-        "Signed PDF generated successfully",
-      file:
-        `/uploads/${outputFileName}`,
-    });
+// Update document status to Signed
+
+db.prepare(`
+  UPDATE documents
+  SET status = ?
+  WHERE id = ?
+`).run(
+  "Signed",
+  documentId
+);
+
+res.json({
+  message:
+    "Signed PDF generated successfully",
+  file:
+    `/uploads/${outputFileName}`,
+});
 
   } catch (error) {
 

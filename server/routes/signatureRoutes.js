@@ -9,6 +9,7 @@ const authMiddleware =
 const {
   saveSignature,
   getSignatures,
+  getLatestSignature,
 } = require(
   "../controllers/signatureController"
 );
@@ -32,7 +33,15 @@ router.post(
   saveSignature
 );
 
+// Get Latest Uploaded Signature
+
+router.get(
+  "/latest",
+  getLatestSignature
+);
+
 // Get Signatures By Document ID
+
 router.get(
   "/:id",
   authMiddleware,

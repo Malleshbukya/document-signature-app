@@ -44,14 +44,37 @@ function PDFEditor({
   const pdfUrl =
     `http://localhost:5000/${pdfDocument.file_path}`;
 
-  const signatureImage =
-    "http://localhost:5000/uploads/signatures/1781515515518.jpeg";
+  const [signatureImage,
+  setSignatureImage] =
+  useState("");
 
-  useEffect(() => {
+  const loadLatestSignature =
+async () => {
 
-    loadSignaturePosition();
+  try {
 
-  }, [pdfDocument]);
+    const response =
+      await axios.get(
+        "http://localhost:5000/api/signatures/latest"
+      );
+
+    console.log(
+      "Latest Signature:",
+      response.data.path
+    );
+
+    setSignatureImage(
+      `http://localhost:5000/${response.data.path}?t=${Date.now()}`
+    );
+
+  } catch (error) {
+
+    console.log(error);
+
+  }
+
+};
+
 
   const loadSignaturePosition =
     async () => {
@@ -104,6 +127,15 @@ function PDFEditor({
       }
 
     };
+ useEffect(() => {
+
+  loadSignaturePosition();
+
+  loadLatestSignature();
+
+}, [pdfDocument]);
+  
+
 
   const saveSignature =
     async (x, y) => {
@@ -291,35 +323,24 @@ function PDFEditor({
 
       </Document>
 
-      <img
-        src={signatureImage}
-        alt="Signature"
-        onMouseDown={
-          handleMouseDown
-        }
-        style={{
-          position:
-            "absolute",
-          left:
-            signaturePos.x,
-          top:
-            signaturePos.y,
-          width:
-            "150px",
-          height:
-            "80px",
-          cursor:
-            "move",
-          zIndex:
-            9999,
-          userSelect:
-            "none",
-          border:
-            "2px dashed red",
-          background:
-            "white",
-        }}
-      />
+     <img
+  key={signatureImage}
+  src={signatureImage}
+  alt="Signature"
+  onMouseDown={handleMouseDown}
+  style={{
+    position: "absolute",
+    left: signaturePos.x,
+    top: signaturePos.y,
+    width: "150px",
+    height: "80px",
+    cursor: "move",
+    zIndex: 9999,
+    userSelect: "none",
+    border: "2px dashed red",
+    background: "white",
+  }}
+/>
 
       <button
         onClick={

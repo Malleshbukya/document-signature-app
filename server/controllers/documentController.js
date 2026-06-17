@@ -10,18 +10,39 @@ const uploadDocument = (
     const file =
       req.file;
 
+    const result =
+      db.prepare(`
+        INSERT INTO documents
+        (
+          owner_id,
+          file_name,
+          file_path,
+          status
+        )
+        VALUES (?,?,?,?)
+      `).run(
+        req.user.id,
+        file.originalname,
+        file.path,
+        "Pending"
+      );
+
+    // Audit Log
+
     db.prepare(`
-      INSERT INTO documents
+      INSERT INTO audit_logs
       (
-        owner_id,
-        file_name,
-        file_path
+        file_id,
+        user_id,
+        ip_address,
+        action
       )
-      VALUES (?,?,?)
+      VALUES (?,?,?,?)
     `).run(
+      result.lastInsertRowid,
       req.user.id,
-      file.originalname,
-      file.path
+      req.ip,
+      "Document Uploaded"
     );
 
     res.status(201).json({
@@ -40,7 +61,6 @@ const uploadDocument = (
   }
 
 };
-
 const getDocuments = (
   req,
   res
@@ -125,17 +145,43 @@ const deleteDocument = (
 
   try {
 
+    // Audit before delete
+
+    db.prepare(`
+      INSERT INTO audit_logs
+      (
+        file_id,
+        user_id,
+        ip_address,
+        action
+      )
+      VALUES (?,?,?,?)
+    `).run(
+      req.params.id,
+      req.user.id,
+      req.ip,
+      "Document Deleted"
+    );
+
+    // Delete signatures
+
+    db.prepare(`
+      DELETE FROM signatures
+      WHERE document_id = ?
+    `).run(req.params.id);
+
+    // Delete document
+
     const result =
-      db
-        .prepare(`
-          DELETE FROM documents
-          WHERE id = ?
-          AND owner_id = ?
-        `)
-        .run(
-          req.params.id,
-          req.user.id
-        );
+      db.prepare(`
+        DELETE FROM documents
+        WHERE id = ?
+        AND owner_id = ?
+      `)
+      .run(
+        req.params.id,
+        req.user.id
+      );
 
     if (
       result.changes === 0
@@ -154,6 +200,8 @@ const deleteDocument = (
     });
 
   } catch (error) {
+
+    console.log(error);
 
     res.status(500).json({
       error:

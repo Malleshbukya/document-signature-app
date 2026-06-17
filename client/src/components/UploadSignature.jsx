@@ -41,13 +41,17 @@ function UploadSignature() {
             }
           );
 
-        alert(
-          "Signature Uploaded Successfully"
-        );
+       alert(
+  "Signature Uploaded Successfully"
+);
 
-        console.log(
-          response.data
-        );
+console.log(
+  response.data
+);
+
+// Refresh page so latest signature loads
+
+window.location.reload();
 
       } catch (error) {
 
