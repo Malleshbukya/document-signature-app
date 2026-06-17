@@ -16,9 +16,25 @@ function Dashboard() {
     setSelectedDocument] =
     useState(null);
 
-  useEffect(() => {
-    fetchDocuments();
-  }, []);
+ useEffect(() => {
+
+  const token =
+    localStorage.getItem(
+      "token"
+    );
+
+  if (!token) {
+
+    window.location.href =
+      "/login";
+
+    return;
+
+  }
+
+  fetchDocuments();
+
+}, []);
 
   const handleLogout = () => {
     localStorage.removeItem(
