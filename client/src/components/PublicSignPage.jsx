@@ -17,7 +17,7 @@ function PublicSignPage() {
       try {
         const response =
           await axios.get(
-            `http://localhost:5000/api/share/public/${token}`
+            `https://document-signature-app-lgxn.onrender.com/api/share/public/${token}`
           );
 
         setDocument(

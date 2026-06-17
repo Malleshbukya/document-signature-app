@@ -39,7 +39,7 @@ function Dashboard() {
 
       const response =
         await axios.get(
-          "http://localhost:5000/api/docs",
+          "https://document-signature-app-lgxn.onrender.com/api/docs",
           {
             headers: {
               Authorization:
@@ -82,7 +82,7 @@ function Dashboard() {
           );
 
         await axios.delete(
-          `http://localhost:5000/api/docs/${id}`,
+          `https://document-signature-app-lgxn.onrender.com/api/docs/${id}`,
           {
             headers: {
               Authorization:
@@ -121,7 +121,7 @@ function Dashboard() {
   );
 
 await axios.post(
-  "http://localhost:5000/api/status/respond",
+  "https://document-signature-app-lgxn.onrender.com/api/status/respond",
   {
     documentId: id,
     status: "Rejected",
@@ -353,7 +353,7 @@ await axios.post(
                 <div className="flex flex-col gap-3">
 
                   <a
-                    href={`http://localhost:5000/${doc.file_path}`}
+                    href={`https://document-signature-app-lgxn.onrender.com/${doc.file_path}`}
                     target="_blank"
                     rel="noreferrer"
                     className="
@@ -402,7 +402,7 @@ await axios.post(
 
                  {doc.status === "Signed" && (
   <a
-    href={`http://localhost:5000/uploads/signed-${doc.id}.pdf`}
+    href={`https://document-signature-app-lgxn.onrender.com/uploads/signed-${doc.id}.pdf`}
     target="_blank"
     rel="noreferrer"
     className="

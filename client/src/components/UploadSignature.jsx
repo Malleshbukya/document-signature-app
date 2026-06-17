@@ -31,7 +31,7 @@ function UploadSignature() {
 
         const response =
           await axios.post(
-            "http://localhost:5000/api/signature-image",
+            "https://document-signature-app-lgxn.onrender.com/api/signature-image",
             formData,
             {
               headers: {

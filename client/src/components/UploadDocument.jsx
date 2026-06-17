@@ -39,7 +39,7 @@ function UploadDocument() {
         setLoading(true);
 
         await axios.post(
-          "http://localhost:5000/api/docs/upload",
+          "https://document-signature-app-lgxn.onrender.com/api/docs/upload",
           formData,
           {
             headers: {

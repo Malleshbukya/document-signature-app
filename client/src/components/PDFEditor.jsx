@@ -42,7 +42,7 @@ function PDFEditor({
   }
 
   const pdfUrl =
-    `http://localhost:5000/${pdfDocument.file_path}`;
+    `https://document-signature-app-lgxn.onrender.com/${pdfDocument.file_path}`;
 
   const [signatureImage,
   setSignatureImage] =
@@ -55,7 +55,7 @@ async () => {
 
     const response =
       await axios.get(
-        "http://localhost:5000/api/signatures/latest"
+        "https://document-signature-app-lgxn.onrender.com/api/signatures/latest"
       );
 
     console.log(
@@ -64,7 +64,7 @@ async () => {
     );
 
     setSignatureImage(
-      `http://localhost:5000/${response.data.path}?t=${Date.now()}`
+      `https://document-signature-app-lgxn.onrender.com/${response.data.path}?t=${Date.now()}`
     );
 
   } catch (error) {
@@ -88,7 +88,7 @@ async () => {
 
         const response =
           await axios.get(
-            `http://localhost:5000/api/signatures/${pdfDocument.id}`,
+            `https://document-signature-app-lgxn.onrender.com/api/signatures/${pdfDocument.id}`,
             {
               headers: {
                 Authorization:
@@ -148,7 +148,7 @@ async () => {
           );
 
         await axios.post(
-          "http://localhost:5000/api/signatures",
+          "https://document-signature-app-lgxn.onrender.com/api/signatures",
           {
             documentId:
               pdfDocument.id,
@@ -261,7 +261,7 @@ async () => {
 
         const response =
           await axios.post(
-            "http://localhost:5000/api/pdf/generate",
+            "https://document-signature-app-lgxn.onrender.com/api/pdf/generate",
             {
               documentId:
                 pdfDocument.id,
@@ -269,7 +269,7 @@ async () => {
           );
 
         window.open(
-          `http://localhost:5000${response.data.file}`,
+          `https://document-signature-app-lgxn.onrender.com${response.data.file}`,
           "_blank"
         );
 
