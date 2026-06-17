@@ -5,7 +5,15 @@ const uploadDocument = (req, res) => {
     console.log("USER ID:", req.user?.id);
     console.log("FILE:", req.file);
 
+    if (!req.file) {
+      return res.status(400).json({
+        message: "No file uploaded",
+      });
+    }
+
     const file = req.file;
+
+    const filePath = `uploads/${file.filename}`;
 
     const result = db.prepare(`
       INSERT INTO documents
@@ -19,11 +27,14 @@ const uploadDocument = (req, res) => {
     `).run(
       req.user.id,
       file.originalname,
-      file.path,
+      filePath,
       "Pending"
     );
 
-    console.log("DOCUMENT INSERTED:", result);
+    console.log(
+      "DOCUMENT INSERTED:",
+      result
+    );
 
     db.prepare(`
       INSERT INTO audit_logs
@@ -41,21 +52,38 @@ const uploadDocument = (req, res) => {
       "Document Uploaded"
     );
 
-    console.log("AUDIT INSERTED");
+    console.log(
+      "AUDIT INSERTED"
+    );
 
     res.status(201).json({
-      message: "Document uploaded successfully",
-      file,
+      message:
+        "Document uploaded successfully",
+      file: {
+        id:
+          result.lastInsertRowid,
+        file_name:
+          file.originalname,
+        file_path:
+          filePath,
+      },
     });
 
   } catch (error) {
-    console.log("UPLOAD ERROR:", error);
+
+    console.log(
+      "UPLOAD ERROR:",
+      error
+    );
 
     res.status(500).json({
-      error: error.message,
+      error:
+        error.message,
     });
+
   }
 };
+
 const getDocuments = (
   req,
   res
@@ -64,15 +92,13 @@ const getDocuments = (
   try {
 
     const documents =
-      db
-        .prepare(`
-          SELECT *
-          FROM documents
-          WHERE owner_id = ?
-        `)
-        .all(
-          req.user.id
-        );
+      db.prepare(`
+        SELECT *
+        FROM documents
+        WHERE owner_id = ?
+      `).all(
+        req.user.id
+      );
 
     res.json(
       documents
@@ -97,17 +123,15 @@ const getDocumentById = (
   try {
 
     const document =
-      db
-        .prepare(`
-          SELECT *
-          FROM documents
-          WHERE id = ?
-          AND owner_id = ?
-        `)
-        .get(
-          req.params.id,
-          req.user.id
-        );
+      db.prepare(`
+        SELECT *
+        FROM documents
+        WHERE id = ?
+        AND owner_id = ?
+      `).get(
+        req.params.id,
+        req.user.id
+      );
 
     if (!document) {
 
@@ -140,8 +164,6 @@ const deleteDocument = (
 
   try {
 
-    // Audit before delete
-
     db.prepare(`
       INSERT INTO audit_logs
       (
@@ -158,22 +180,19 @@ const deleteDocument = (
       "Document Deleted"
     );
 
-    // Delete signatures
-
     db.prepare(`
       DELETE FROM signatures
       WHERE document_id = ?
-    `).run(req.params.id);
-
-    // Delete document
+    `).run(
+      req.params.id
+    );
 
     const result =
       db.prepare(`
         DELETE FROM documents
         WHERE id = ?
         AND owner_id = ?
-      `)
-      .run(
+      `).run(
         req.params.id,
         req.user.id
       );
