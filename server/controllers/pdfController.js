@@ -69,10 +69,16 @@ const generateSignedPdf = async (
         "../uploads/signatures"
       );
 
-    const signatureFiles =
-      fs.readdirSync(
-        signaturesDir
-      );
+    if (!fs.existsSync(signaturesDir)) {
+  return res.status(404).json({
+    message: "Signature folder not found",
+  });
+}
+
+const signatureFiles =
+  fs.readdirSync(
+    signaturesDir
+  );
 
     if (
       signatureFiles.length === 0
@@ -98,10 +104,17 @@ const generateSignedPdf = async (
         latestSignature
       );
 
-    const existingPdf =
-      fs.readFileSync(
-        inputPath
-      );
+   if (!fs.existsSync(inputPath)) {
+  return res.status(404).json({
+    message: "PDF file not found on server",
+    path: inputPath,
+  });
+}
+
+const existingPdf =
+  fs.readFileSync(
+    inputPath
+  );
 
     const pdfDoc =
       await PDFDocument.load(
