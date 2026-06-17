@@ -348,7 +348,34 @@ await axios.post(
                       "Pending"}
                   </span>
 
-                </p>
+                </p> 
+
+
+
+                
+
+{doc.status === "Rejected" &&
+  doc.rejection_reason && (
+    <div
+      className="
+        bg-red-100
+        text-red-700
+        p-3
+        rounded-lg
+        mb-4
+      "
+    >
+      <strong>
+        Reason:
+      </strong>{" "}
+      {doc.rejection_reason}
+    </div>
+)}
+
+
+
+                
+                
 
                 <div className="flex flex-col gap-3">
 
