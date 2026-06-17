@@ -7,8 +7,31 @@ const multer =
 const path =
   require("path");
 
+const fs =
+  require("fs");
+
 const router =
   express.Router();
+
+// Create uploads/signatures folder if it doesn't exist
+const signatureDir =
+  path.join(
+    __dirname,
+    "../uploads/signatures"
+  );
+
+if (
+  !fs.existsSync(
+    signatureDir
+  )
+) {
+  fs.mkdirSync(
+    signatureDir,
+    {
+      recursive: true,
+    }
+  );
+}
 
 const storage =
   multer.diskStorage({
@@ -18,7 +41,7 @@ const storage =
 
         cb(
           null,
-          "uploads/signatures"
+          signatureDir
         );
 
       },
