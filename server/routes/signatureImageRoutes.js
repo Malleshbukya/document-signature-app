@@ -13,12 +13,27 @@ const fs =
 const router =
   express.Router();
 
-// Create uploads/signatures folder if it doesn't exist
+// Upload folder path
+
 const signatureDir =
   path.join(
     __dirname,
     "../uploads/signatures"
   );
+
+console.log(
+  "SIGNATURE DIR:",
+  signatureDir
+);
+
+console.log(
+  "EXISTS BEFORE:",
+  fs.existsSync(
+    signatureDir
+  )
+);
+
+// Create folder if missing
 
 if (
   !fs.existsSync(
@@ -31,13 +46,30 @@ if (
       recursive: true,
     }
   );
+
+  console.log(
+    "SIGNATURE FOLDER CREATED"
+  );
 }
+
+console.log(
+  "EXISTS AFTER:",
+  fs.existsSync(
+    signatureDir
+  )
+);
+
+// Multer Storage
 
 const storage =
   multer.diskStorage({
 
     destination:
-      (req, file, cb) => {
+      (
+        req,
+        file,
+        cb
+      ) => {
 
         cb(
           null,
@@ -47,7 +79,11 @@ const storage =
       },
 
     filename:
-      (req, file, cb) => {
+      (
+        req,
+        file,
+        cb
+      ) => {
 
         cb(
           null,
@@ -57,25 +93,35 @@ const storage =
           )
         );
 
-      }
+      },
 
   });
 
 const upload =
   multer({
-    storage
+    storage,
   });
+
+// Upload Route
 
 router.post(
   "/",
   upload.single(
     "signature"
   ),
-  (req, res) => {
+  (
+    req,
+    res
+  ) => {
+
+    console.log(
+      "SIGNATURE UPLOADED:",
+      req.file.path
+    );
 
     res.json({
       file:
-        req.file.path
+        req.file.path,
     });
 
   }
