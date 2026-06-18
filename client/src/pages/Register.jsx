@@ -39,15 +39,33 @@ function Register() {
 
         navigate("/login");
 
-      } catch (error) {
+      } 
+      
+      catch (error) {
 
-        console.log(error);
+  console.log(error);
 
-        alert(
-          "Registration Failed"
-        );
+  if (
+    error.response &&
+    error.response.data.message ===
+      "User already exists"
+  ) {
 
-      }
+    alert(
+      "Account already exists. Please login."
+    );
+
+    navigate("/login");
+
+  } else {
+
+    alert(
+      "Registration Failed"
+    );
+
+  }
+
+}
 
     };
 
